@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhà Sách Trực Tuyến - Trợ Lý AI Tư Vấn Sách & Truyện</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Thanh điều hướng -->
+  <header class="navbar">
+    <div class="container nav-content">
+      <div class="logo">📚 Yuhmai BookStore</div>
+      <nav class="nav-links">
+        <a href="#" class="active">Trang chủ</a>
+        <a href="#catalog">Manga & Light Novel</a>
+        <a href="#catalog">Tiểu thuyết Trinh thám</a>
+        <a href="#catalog">Boxset Đặc biệt</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Banner giới thiệu -->
+  <section class="hero">
+    <div class="container">
+      <h1>Khám Phá Thế Giới Sách & Truyện Tranh Bản Quyền</h1>
+      <p>Không nhớ tên truyện? Hãy bấm vào biểu tượng <strong>Thủ thư AI</strong> ở góc dưới bên phải để mô tả cốt truyện hoặc tìm phiên bản kèm quà tặng!</p>
+    </div>
+  </section>
+
+  <!-- Danh mục sách trưng bày -->
+  <main class="container" id="catalog">
+    <h2 class="section-title">Sách Nổi Bật Tại Cửa Hàng</h2>
+    <div class="book-grid">
+      <div class="book-card">
+        <span class="badge">NXB Kim Đồng</span>
+        <h3>Chú Thuật Hồi Chiến - Tập 20</h3>
+        <p class="author">Tác giả: Gege Akutami</p>
+        <p class="edition">Bản Thường (Tặng kèm Bookmark)</p>
+        <div class="price">30.000 VNĐ</div>
+      </div>
+
+      <div class="book-card">
+        <span class="badge special">IPM - Bản Đặc Biệt</span>
+        <h3>Chân Tướng Thảm Kịch</h3>
+        <p class="author">Tác giả: Edogawa Ranpo</p>
+        <p class="edition">Tặng Standee Acrylic + Postcard</p>
+        <div class="price">108.000 VNĐ</div>
+      </div>
+
+      <div class="book-card">
+        <span class="badge special">Bản Giới Hạn</span>
+        <h3>Chuyển Sinh Thành Slime - Tập 22</h3>
+        <p class="author">Tác giả: Fuse</p>
+        <p class="edition">Bìa áo đôi + Card PVC Rimuru</p>
+        <div class="price">115.000 VNĐ</div>
+      </div>
+
+      <div class="book-card">
+        <span class="badge">NXB Trẻ</span>
+        <h3>Dáng Hình Thanh Âm (Boxset 7 Tập)</h3>
+        <p class="author">Tác giả: Yoshitoki Oima</p>
+        <p class="edition">Hộp cứng + 7 Postcard + Sổ tay</p>
+        <div class="price">245.000 VNĐ</div>
+      </div>
+
+      <div class="book-card">
+        <span class="badge out">Tạm hết hàng</span>
+        <h3>Spy x Family - Tập 12</h3>
+        <p class="author">Tác giả: Tatsuya Endo</p>
+        <p class="edition">Bản Thường (Kèm Thẻ Anya)</p>
+        <div class="price">25.000 VNĐ</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Nút mở khung Chat nổi góc phải -->
+  <button id="chat-toggle-btn" class="chat-toggle-btn" title="Chat với Thủ thư AI">
+    💬 Tư vấn sách AI
+  </button>
+
+  <!-- Khung Chat Widget -->
+  <div id="chat-widget" class="chat-widget hidden">
+    <div class="chat-header">
+      <div>
+        <strong>🤖 Thủ thư AI - Tư vấn 24/7</strong>
+        <span class="status-dot">● Trực tuyến</span>
+      </div>
+      <button id="chat-close-btn" class="close-btn">✕</button>
+    </div>
+
+    <div id="chat-messages" class="chat-messages">
+      <div class="message bot">
+        Xin chào! Mình là <strong>Thủ thư AI</strong>. Bạn đang tìm truyện theo thể loại, cốt truyện hay muốn kiểm tra quà tặng kèm của phiên bản đặc biệt nào?
+      </div>
+    </div>
+
+    <!-- Nút gợi ý câu hỏi nhanh -->
+    <div class="quick-prompts">
+      <button onclick="sendQuickPrompt('Tìm truyện trinh thám có tặng Standee')">🔍 Trinh thám tặng Standee</button>
+      <button onclick="sendQuickPrompt('Có manga phép thuật trường học nào u tối không?')">⚡ Manga phép thuật u tối</button>
+      <button onclick="sendQuickPrompt('Spy x Family tập 12 còn hàng không?')">📦 Kiểm tra Spy x Family 12</button>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="user-input" placeholder="Nhập câu hỏi tìm sách của bạn..." />
+      <button id="send-btn">Gửi</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
