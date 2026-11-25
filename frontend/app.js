@@ -1,6 +1,6 @@
 // Khi chạy trên máy cá nhân giữ nguyên địa chỉ localhost dưới đây.
 // Sau này deploy Backend lên Render xong, chỉ cần thay bằng URL Render (VD: https://ten-app.onrender.com/api/chat)
-const API_URL = "http://127.0.0.1:8000/api/chat";
+const API_URL = "https://bookstore-rag-web.onrender.com/api/chat";
 
 const chatToggleBtn = document.getElementById("chat-toggle-btn");
 const chatCloseBtn = document.getElementById("chat-close-btn");
