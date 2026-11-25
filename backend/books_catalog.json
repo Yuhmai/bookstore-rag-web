@@ -1,0 +1,67 @@
+[
+  {
+    "id": "book_01",
+    "title": "Chú Thuật Hồi Chiến - Tập 20",
+    "original_title": "Jujutsu Kaisen Vol. 20",
+    "author": "Gege Akutami",
+    "publisher": "NXB Kim Đồng",
+    "category": "Manga, Hành động, Phép thuật trường học, Shounen, U tối",
+    "price": 30000,
+    "edition": "Bản Thường (Tặng kèm Bookmark nhân vật)",
+    "stock": "Còn hàng",
+    "synopsis": "Cuộc chiến sinh tử tại Căn cứ Sendai thuộc Tử Diệt Hồi Du bước vào cao trào. Yuta Okkotsu phải một mình đối đầu với các thuật sư cổ đại hùng mạnh trong bối cảnh phép thuật u tối và đầy kịch tính.",
+    "url": "https://nhasach-demo.vercel.app/san-pham/chu-thuat-hoi-chien-20"
+  },
+  {
+    "id": "book_02",
+    "title": "Chân Tướng Thảm Kịch",
+    "original_title": "Edogawa Ranpo Best Selection",
+    "author": "Edogawa Ranpo",
+    "publisher": "IPM",
+    "category": "Tiểu thuyết, Trinh thám cổ điển, Kinh dị, Tâm lý",
+    "price": 108000,
+    "edition": "Bản Đặc Biệt (Tặng kèm Standee Acrylic + Postcard độc quyền)",
+    "stock": "Còn hàng",
+    "synopsis": "Tuyển tập những vụ án ly kỳ, rùng rợn và đậm chất suy luận cổ điển của bậc thầy trinh thám Nhật Bản Edogawa Ranpo. Phù hợp với độc giả yêu thích không khí bí ẩn, u ám.",
+    "url": "https://nhasach-demo.vercel.app/san-pham/chan-tuong-tham-kich"
+  },
+  {
+    "id": "book_03",
+    "title": "Về Chuyện Tôi Chuyển Sinh Thành Slime - Tập 22",
+    "original_title": "Tensei Shitara Slime Datta Ken",
+    "author": "Fuse",
+    "publisher": "Skybooks / NXB Hà Nội",
+    "category": "Light Novel, Isekai, Chuyển sinh, Giả tưởng, Phiêu lưu",
+    "price": 115000,
+    "edition": "Bản Giới Hạn (Tặng kèm Bìa áo đôi + Card PVC Rimuru)",
+    "stock": "Còn hàng",
+    "synopsis": "Sau khi bị sát hại ở thế giới thực, anh chàng nhân viên văn phòng chuyển sinh sang thế giới khác dưới hình dạng một con quái vật Slime và từng bước xây dựng vương quốc ma vật hùng mạnh.",
+    "url": "https://nhasach-demo.vercel.app/san-pham/chuyen-sinh-thanh-slime-22"
+  },
+  {
+    "id": "book_04",
+    "title": "Dáng Hình Thanh Âm - Trọn Bộ Boxset 7 Tập",
+    "original_title": "Koe no Katachi",
+    "author": "Yoshitoki Oima",
+    "publisher": "NXB Trẻ",
+    "category": "Manga, Học đường, Tâm lý, Tình cảm, Chữa lành",
+    "price": 245000,
+    "edition": "Boxset Đặc Biệt (Hộp cứng + Bộ 7 Postcard + Sổ tay)",
+    "stock": "Còn hàng",
+    "synopsis": "Câu chuyện cảm động về sự chuộc lỗi, tình bạn và sự thấu cảm giữa cậu nam sinh Ishida và cô bạn khiếm thính Nishimiya từ thời tiểu học đến cấp ba.",
+    "url": "https://nhasach-demo.vercel.app/san-pham/dang-hinh-thanh-am-boxset"
+  },
+  {
+    "id": "book_05",
+    "title": "Spy x Family - Gia Đình Điệp Viên Tập 12",
+    "original_title": "Spy x Family Vol. 12",
+    "author": "Tatsuya Endo",
+    "publisher": "NXB Kim Đồng",
+    "category": "Manga, Hài hước, Hành động, Gia đình, Học đường",
+    "price": 25000,
+    "edition": "Bản Thường (Tặng kèm Thẻ nhân vật Anya)",
+    "stock": "Tạm hết hàng",
+    "synopsis": "Chàng điệp viên tài ba Twilight phải lập một gia đình giả với nữ sát thủ và cô bé ngoại cảm Anya để thực hiện nhiệm vụ hòa bình, tạo nên vô số tình huống dở khóc dở cười.",
+    "url": "https://nhasach-demo.vercel.app/san-pham/spy-x-family-12"
+  }
+]
