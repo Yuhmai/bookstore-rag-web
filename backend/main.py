@@ -15,7 +15,7 @@ pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
 index = pc.Index("bookstore-index")
 
 def get_candidate_models() -> list[str]:
-    """Tự động lấy danh sách các mô hình Gemini hỗ trợ sinh văn bản trên gói Free."""
+    """Ưu tiên các mô hình Flash-Lite tốc độ cao trên gói Free."""
     candidates = []
     excluded = ("image", "tts", "audio", "live", "embedding", "computer", "robotics", "omni", "deep-research")
     try:
@@ -29,20 +29,23 @@ def get_candidate_models() -> list[str]:
     except Exception as e:
         print(f"Cảnh báo khi lấy danh sách model: {e}")
 
-    flash_models = sorted(
-        [n for n in candidates if "flash" in n.lower() and "lite" not in n.lower()],
-        reverse=True
-    )
     flash_lite = sorted(
         [n for n in candidates if "flash-lite" in n.lower()],
         reverse=True
     )
-    others = [n for n in candidates if n not in flash_models and n not in flash_lite]
-    ordered = ["models/gemini-flash-latest"] + flash_models + flash_lite + others
+    flash_models = sorted(
+        [n for n in candidates if "flash" in n.lower() and "lite" not in n.lower()],
+        reverse=True
+    )
+    others = [n for n in candidates if n not in flash_lite and n not in flash_models]
+    ordered = ["models/gemini-flash-lite-latest"] + flash_lite + ["models/gemini-flash-latest"] + flash_models + others
     return list(dict.fromkeys(ordered))
 
 CANDIDATE_MODELS = get_candidate_models()
-print(f"--> Danh sách mô hình ưu tiên: {CANDIDATE_MODELS[:5]}")
+ACTIVE_MODEL: str | None = None
+RESPONSE_CACHE: dict[str, str] = {}
+
+print(f"--> Danh sách mô hình ưu tiên tốc độ: {CANDIDATE_MODELS[:5]}")
 
 app = FastAPI(title="Bookstore AI Chatbot API")
 
@@ -60,12 +63,33 @@ class ChatRequest(BaseModel):
 SYSTEM_PROMPT = """
 Bạn là "Thủ thư AI" - trợ lý tư vấn bán hàng chuyên nghiệp, thân thiện của Nhà sách.
 Quy tắc trả lời bắt buộc:
-1. Chỉ sử dụng thông tin sách được cung cấp trong phần DỮ LIỆU KHO SÁCH bên dưới để tư vấn. Tuyệt đối không tự bịa ra sách hoặc giá bán không có trong dữ liệu.
-2. Khi giới thiệu sách, hãy nêu rõ: Tên sách, Tác giả, Nhà xuất bản, Giá bán, Phiên bản & Quà tặng kèm, Trạng thái kho và tóm tắt ngắn gọn sức hấp dẫn của truyện.
-3. Luôn đính kèm đường link đặt mua dạng Markdown: [Đặt mua tại đây](link_san_pham).
-4. Nếu sách khách hỏi đang ở trạng thái "Tạm hết hàng" hoặc không có trong dữ liệu, hãy lịch sự thông báo và gợi ý cuốn khác phù hợp.
-5. Trình bày bằng Tiếng Việt tự nhiên, sử dụng gạch đầu dòng và in đậm các thông tin quan trọng cho dễ đọc.
+1. Chỉ sử dụng thông tin sách trong phần DỮ LIỆU KHO SÁCH bên dưới. Không tự bịa thông tin.
+2. Chỉ tập trung giới thiệu cuốn sách khớp nhất với nhu cầu khách hỏi (không liệt kê lan man các sách không liên quan).
+3. Trình bày súc tích, gọn gàng bằng gạch đầu dòng và in đậm: **Tên sách**, **Tác giả**, **NXB**, **Giá bán**, **Quà tặng kèm**, **Trạng thái kho**, tóm tắt 1–2 câu hấp dẫn và link: [Đặt mua tại đây](link_san_pham).
+4. Nếu sách khách hỏi "Tạm hết hàng" hoặc không có, hãy báo ngắn gọn và gợi ý 1 cuốn khác phù hợp.
 """
+
+def generate_fast_reply(model_name: str, prompt: str) -> str:
+    """Gọi Gemini với cấu hình tắt suy luận thừa để tối ưu độ trễ."""
+    try:
+        res = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
+                temperature=0.3,
+            )
+        )
+        return res.text
+    except Exception as e:
+        if "400" in str(e) or "INVALID_ARGUMENT" in str(e):
+            res = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(temperature=0.3)
+            )
+            return res.text
+        raise e
 
 @app.get("/")
 def health_check():
@@ -73,20 +97,27 @@ def health_check():
 
 @app.post("/api/chat")
 async def chat_endpoint(req: ChatRequest):
-    if not req.message.strip():
+    global ACTIVE_MODEL
+    clean_msg = req.message.strip()
+    if not clean_msg:
         raise HTTPException(status_code=400, detail="Nội dung tin nhắn không được để trống.")
 
+    # Phản hồi tức thì (< 0.05s) nếu câu hỏi đã có trong bộ nhớ đệm
+    cache_key = clean_msg.lower()
+    if cache_key in RESPONSE_CACHE:
+        return {"reply": RESPONSE_CACHE[cache_key]}
+
     try:
-        # Bước 1: Chuyển câu hỏi người dùng thành véc-tơ 768 chiều
+        # Bước 1: Chuyển câu hỏi thành véc-tơ 768 chiều
         emb_res = client.models.embed_content(
             model="gemini-embedding-001",
-            contents=req.message,
+            contents=clean_msg,
             config=types.EmbedContentConfig(output_dimensionality=768)
         )
         q_emb = emb_res.embeddings[0].values
 
-        # Bước 2: Tìm Top 3 cuốn sách liên quan nhất trên Pinecone
-        search_res = index.query(vector=q_emb, top_k=3, include_metadata=True)
+        # Bước 2: Lấy Top 2 cuốn sách sát nhất trên Pinecone
+        search_res = index.query(vector=q_emb, top_k=2, include_metadata=True)
         matches = getattr(search_res, "matches", None) or search_res.get("matches", [])
 
         retrieved_docs = []
@@ -97,28 +128,32 @@ async def chat_endpoint(req: ChatRequest):
 
         context = "\n\n---\n\n".join(retrieved_docs)
 
-        # Bước 3: Ghép ngữ cảnh và tự động chọn mô hình có hạn mức Free Tier khả dụng
+        # Bước 3: Ưu tiên gọi thẳng mô hình đang hoạt động tốt nhất
         full_prompt = (
             f"{SYSTEM_PROMPT}\n\n"
             f"=== DỮ LIỆU KHO SÁCH ===\n{context}\n\n"
-            f"=== CÂU HỎI KHÁCH HÀNG ===\n{req.message}"
+            f"=== CÂU HỎI KHÁCH HÀNG ===\n{clean_msg}"
+        )
+
+        models_to_try = (
+            [ACTIVE_MODEL] + [m for m in CANDIDATE_MODELS if m != ACTIVE_MODEL]
+            if ACTIVE_MODEL else CANDIDATE_MODELS
         )
 
         last_error = None
-        for model_name in CANDIDATE_MODELS:
+        for model_name in models_to_try:
             try:
-                response = client.models.generate_content(
-                    model=model_name,
-                    contents=full_prompt
-                )
-                print(f"--> Đã trả lời thành công bằng mô hình: {model_name}")
-                return {"reply": response.text}
+                reply_text = generate_fast_reply(model_name, full_prompt)
+                ACTIVE_MODEL = model_name
+                RESPONSE_CACHE[cache_key] = reply_text
+                print(f"--> Trả lời bằng mô hình: {model_name}")
+                return {"reply": reply_text}
             except Exception as model_err:
-             last_error = model_err
-             err_str = str(model_err)
-             if any(code in err_str for code in ("404", "NOT_FOUND", "429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")):
-                 continue
-             raise model_err
+                last_error = model_err
+                err_str = str(model_err)
+                if any(code in err_str for code in ("404", "NOT_FOUND", "429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")):
+                    continue
+                raise model_err
 
         raise last_error
 
