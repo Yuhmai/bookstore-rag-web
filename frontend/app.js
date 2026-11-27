@@ -393,11 +393,21 @@ async function handleAuthSession(session) {
   authForms.hidden = true;
   accountDetails.hidden = false;
   setAccountMessage(`Đã đăng nhập: ${currentUser.email || ""}`);
-  try {
-    await Promise.all([loadProfile(), restoreAccountCart(currentUser.id, guestCart), loadOrderHistory()]);
-  } catch (error) {
-    console.error("Không thể tải dữ liệu tài khoản từ Supabase:", error);
-    setAccountMessage("Không thể tải dữ liệu tài khoản. Hãy kiểm tra schema/RLS Supabase rồi thử lại.", true);
+  const results = await Promise.allSettled([
+    loadProfile(),
+    restoreAccountCart(currentUser.id, guestCart),
+    loadOrderHistory()
+  ]);
+  const sections = ["hồ sơ", "giỏ hàng", "lịch sử đơn hàng"];
+  const failures = results.flatMap((result, index) => {
+    if (result.status === "fulfilled") return [];
+    console.error(`Không thể tải ${sections[index]} từ Supabase:`, result.reason);
+    return [`${sections[index]}: ${result.reason.message || "Lỗi không xác định"}`];
+  });
+  if (failures.length > 0) {
+    setAccountMessage(`Không tải được ${failures.join(" | ")}`, true);
+  } else {
+    setAccountMessage(`Đã đăng nhập: ${currentUser.email || ""}`);
   }
 }
 
