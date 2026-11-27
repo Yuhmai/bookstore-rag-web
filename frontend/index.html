@@ -17,6 +17,17 @@
         <a href="#catalog">Tiểu thuyết Trinh thám</a>
         <a href="#catalog">Boxset Đặc biệt</a>
       </nav>
+
+      <!-- Cụm nút Giỏ hàng & Tài khoản -->
+      <div class="nav-actions">
+        <button class="btn-nav" onclick="openCart()">🛒 Giỏ hàng (<span id="cart-count">0</span>)</button>
+        <button class="btn-nav" id="btn-auth" onclick="openAuthModal()">Đăng nhập</button>
+        <div id="user-menu" style="display:none; gap:8px; align-items:center;">
+          <span id="user-email-label" style="font-size:13px; color:#cbd5e1;"></span>
+          <button class="btn-nav" onclick="openOrdersModal()">Đơn hàng</button>
+          <button class="btn-nav btn-outline" onclick="handleLogout()">Đăng xuất</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -38,6 +49,7 @@
         <p class="author">Tác giả: Gege Akutami</p>
         <p class="edition">Bản Thường (Tặng kèm Bookmark)</p>
         <div class="price">30.000 VNĐ</div>
+        <button class="btn-add-cart" onclick="addToCart('book_01', 'Chú Thuật Hồi Chiến - Tập 20', 30000)">🛒 Thêm vào giỏ</button>
       </div>
 
       <div class="book-card">
@@ -46,6 +58,7 @@
         <p class="author">Tác giả: Edogawa Ranpo</p>
         <p class="edition">Tặng Standee Acrylic + Postcard</p>
         <div class="price">108.000 VNĐ</div>
+        <button class="btn-add-cart" onclick="addToCart('book_02', 'Chân Tướng Thảm Kịch', 108000)">🛒 Thêm vào giỏ</button>
       </div>
 
       <div class="book-card">
@@ -54,6 +67,7 @@
         <p class="author">Tác giả: Fuse</p>
         <p class="edition">Bìa áo đôi + Card PVC Rimuru</p>
         <div class="price">115.000 VNĐ</div>
+        <button class="btn-add-cart" onclick="addToCart('book_03', 'Chuyển Sinh Thành Slime - Tập 22', 115000)">🛒 Thêm vào giỏ</button>
       </div>
 
       <div class="book-card">
@@ -62,6 +76,7 @@
         <p class="author">Tác giả: Yoshitoki Oima</p>
         <p class="edition">Hộp cứng + 7 Postcard + Sổ tay</p>
         <div class="price">245.000 VNĐ</div>
+        <button class="btn-add-cart" onclick="addToCart('book_04', 'Dáng Hình Thanh Âm (Boxset 7 Tập)', 245000)">🛒 Thêm vào giỏ</button>
       </div>
 
       <div class="book-card">
@@ -70,6 +85,7 @@
         <p class="author">Tác giả: Tatsuya Endo</p>
         <p class="edition">Bản Thường (Kèm Thẻ Anya)</p>
         <div class="price">25.000 VNĐ</div>
+        <button class="btn-add-cart" disabled>Tạm hết hàng</button>
       </div>
     </div>
   </main>
@@ -108,6 +124,67 @@
     </div>
   </div>
 
+  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
+  <div id="auth-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="auth-title">Đăng nhập tài khoản</h3>
+        <button class="modal-close-btn" onclick="closeModal('auth-modal')">✕</button>
+      </div>
+      <input type="email" id="auth-email" class="form-input" placeholder="Email của bạn..." />
+      <input type="password" id="auth-password" class="form-input" placeholder="Mật khẩu (tối thiểu 6 ký tự)..." />
+      <p id="auth-msg" class="form-msg"></p>
+      <div style="display:flex; gap:10px; margin-top:12px;">
+        <button class="btn-primary" style="flex:1;" onclick="handleLogin()">Đăng nhập</button>
+        <button class="btn-secondary" style="flex:1;" onclick="handleRegister()">Đăng ký mới</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL GIỎ HÀNG & THANH TOÁN -->
+  <div id="cart-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal-box" style="max-width:520px;">
+      <div class="modal-header">
+        <h3>Giỏ hàng & Thanh toán</h3>
+        <button class="modal-close-btn" onclick="closeModal('cart-modal')">✕</button>
+      </div>
+      <div id="cart-items-list" style="max-height:220px; overflow-y:auto; margin-bottom:12px;"></div>
+      <div style="text-align:right; font-weight:bold; font-size:16px; margin-bottom:12px;">
+        Tổng cộng: <span id="cart-total" style="color:#dc2626;">0 VNĐ</span>
+      </div>
+
+      <div id="checkout-form">
+        <input type="text" id="ship-name" class="form-input" placeholder="Họ và tên người nhận *" />
+        <input type="text" id="ship-phone" class="form-input" placeholder="Số điện thoại *" />
+        <input type="text" id="ship-address" class="form-input" placeholder="Địa chỉ nhận hàng chi tiết *" />
+        <select id="payment-method" class="form-input">
+          <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+          <option value="VIETQR">Chuyển khoản ngân hàng (Quét mã VietQR)</option>
+        </select>
+        <button class="btn-primary" style="width:100%;" onclick="submitOrder()">Xác nhận đặt hàng</button>
+      </div>
+
+      <div id="order-success-box" style="display:none; text-align:center; padding-top:10px;">
+        <h4 style="color:#16a34a;">Đặt hàng thành công! Mã đơn: <span id="res-order-code"></span></h4>
+        <div id="qr-container" style="margin:10px 0;"></div>
+        <button class="btn-secondary" onclick="closeModal('cart-modal')">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LỊCH SỬ ĐƠN HÀNG -->
+  <div id="orders-modal" class="modal-backdrop" style="display:none;">
+    <div class="modal-box" style="max-width:560px;">
+      <div class="modal-header">
+        <h3>Lịch sử đơn hàng của bạn</h3>
+        <button class="modal-close-btn" onclick="closeModal('orders-modal')">✕</button>
+      </div>
+      <div id="orders-list" style="max-height:380px; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- Tải thư viện Supabase trước rồi mới chạy app.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
