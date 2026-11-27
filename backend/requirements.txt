@@ -1,6 +1,7 @@
 fastapi
 uvicorn
+python-dotenv
 google-genai
 pinecone
 pydantic
-python-dotenv
+supabase
