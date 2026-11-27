@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nhà Sách Trực Tuyến - Trợ Lý AI Tư Vấn Sách & Truyện</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Thanh điều hướng -->
+  <header class="navbar">
+    <div class="container nav-content">
+      <div class="logo">📚 Yuhmai BookStore</div>
+      <nav class="nav-links">
+        <a href="#catalog" class="active" data-category="all">Trang chủ</a>
+        <a href="#catalog" data-category="manga-lightnovel">Manga & Light Novel</a>
+        <a href="#catalog" data-category="detective">Tiểu thuyết Trinh thám</a>
+        <a href="#catalog" data-category="boxset">Boxset Đặc biệt</a>
+      </nav>
+      <button id="cart-toggle-btn" class="cart-toggle-btn" aria-controls="cart-panel" aria-expanded="false">
+        🛒 Giỏ hàng <span id="cart-count" class="cart-count">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Banner giới thiệu -->
+  <section class="hero">
+    <div class="container">
+      <h1>Khám Phá Thế Giới Sách & Truyện Tranh Bản Quyền</h1>
+      <p>Không nhớ tên truyện? Hãy bấm vào biểu tượng <strong>Thủ thư AI</strong> ở góc dưới bên phải để mô tả cốt truyện hoặc tìm phiên bản kèm quà tặng!</p>
+    </div>
+  </section>
+
+  <!-- Danh mục sách trưng bày -->
+  <main class="container" id="catalog">
+    <h2 class="section-title">Sách Nổi Bật Tại Cửa Hàng</h2>
+    <div class="catalog-toolbar">
+      <label class="search-field">
+        <span class="sr-only">Tìm sách</span>
+        <input id="book-search" type="search" placeholder="Tìm theo tên sách..." />
+      </label>
+      <label class="author-search-field">
+        <span class="sr-only">Tìm theo tên tác giả</span>
+        <input id="author-search" type="search" placeholder="Tìm theo tên tác giả..." />
+      </label>
+      <label>
+        <span class="sr-only">Lọc theo danh mục</span>
+        <select id="category-filter">
+          <option value="all">Tất cả danh mục</option>
+          <option value="manga-lightnovel">Manga & Light Novel</option>
+          <option value="detective">Tiểu thuyết Trinh thám</option>
+          <option value="boxset">Boxset Đặc biệt</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Lọc theo phiên bản</span>
+        <select id="edition-filter">
+          <option value="all">Tất cả phiên bản</option>
+          <option value="regular">Bản thường</option>
+          <option value="special">Bản đặc biệt</option>
+          <option value="limited">Bản giới hạn</option>
+          <option value="boxset">Boxset</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Lọc theo tình trạng hàng</span>
+        <select id="stock-filter">
+          <option value="all">Tất cả tình trạng</option>
+          <option value="in-stock">Còn hàng</option>
+          <option value="out-of-stock">Hết hàng</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Sắp xếp sách</span>
+        <select id="sort-books">
+          <option value="featured">Nổi bật</option>
+          <option value="price-asc">Giá thấp đến cao</option>
+          <option value="price-desc">Giá cao đến thấp</option>
+          <option value="title-asc">Tên A–Z</option>
+        </select>
+      </label>
+      <span id="results-count" class="results-count" aria-live="polite"></span>
+    </div>
+    <div class="book-grid">
+      <article class="book-card" data-id="book_01" data-category="manga" data-edition="regular" data-price="30000" data-stock="true" data-search="Jujutsu Kaisen Vol. 20 Manga Hành động Phép thuật trường học Shounen U tối Cuộc chiến sinh tử tại Căn cứ Sendai thuộc Tử Diệt Hồi Du Yuta Okkotsu thuật sư cổ đại">
+        <span class="badge">NXB Kim Đồng</span>
+        <h3>Chú Thuật Hồi Chiến - Tập 20</h3>
+        <p class="author">Tác giả: Gege Akutami</p>
+        <p class="edition">Bản Thường (Tặng kèm Bookmark)</p>
+        <div class="price">30.000 VNĐ</div>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+      </article>
+
+      <article class="book-card" data-id="book_02" data-category="detective" data-edition="regular" data-price="25000" data-stock="true" data-search="Thám Tử Lừng Danh Conan Tập 100 Detective Conan Manga Trinh thám phá án suy luận Aoyama Gosho">
+        <span class="badge">NXB Kim Đồng</span>
+        <h3>Thám Tử Lừng Danh Conan - Tập 100</h3>
+        <p class="author">Tác giả: Gosho Aoyama</p>
+        <p class="edition">Bản Thường</p>
+        <div class="price">25.000 VNĐ</div>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+      </article>
+
+      <article class="book-card" data-id="book_03" data-category="lightnovel" data-edition="regular" data-price="115000" data-stock="true" data-search="Về Chuyện Tôi Chuyển Sinh Thành Slime Tập 5 Tensei Shitara Slime Datta Ken Light Novel Isekai Chuyển sinh Giả tưởng Phiêu lưu Rimuru Fuse">
+        <span class="badge">Skybooks / NXB Phụ Nữ Việt Nam</span>
+        <h3>Về Chuyện Tôi Chuyển Sinh Thành Slime - Tập 5</h3>
+        <p class="author">Tác giả: Fuse</p>
+        <p class="edition">Bản Thường</p>
+        <div class="price">115.000 VNĐ</div>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+      </article>
+
+      <article class="book-card" data-id="book_04" data-category="boxset" data-edition="boxset special" data-price="245000" data-stock="true" data-search="Koe no Katachi Manga Học đường Tâm lý Tình cảm Chữa lành chuộc lỗi tình bạn thấu cảm Ishida Nishimiya khiếm thính">
+        <span class="badge">NXB Trẻ</span>
+        <h3>Dáng Hình Thanh Âm (Boxset 7 Tập)</h3>
+        <p class="author">Tác giả: Yoshitoki Oima</p>
+        <p class="edition">Hộp cứng + 7 Postcard + Sổ tay</p>
+        <div class="price">245.000 VNĐ</div>
+        <button class="add-to-cart">Thêm vào giỏ</button>
+      </article>
+
+      <article class="book-card" data-id="book_05" data-category="manga" data-edition="regular" data-price="25000" data-stock="false" data-search="Spy x Family Vol. 12 Gia đình điệp viên Manga Hài hước Hành động Gia đình Học đường Twilight Anya nữ sát thủ ngoại cảm">
+        <span class="badge">NXB Kim Đồng</span>
+        <span class="badge out">Tạm hết hàng</span>
+        <h3>Spy x Family - Tập 12</h3>
+        <p class="author">Tác giả: Tatsuya Endo</p>
+        <p class="edition">Bản Thường (Kèm Thẻ Anya)</p>
+        <div class="price">25.000 VNĐ</div>
+        <button class="add-to-cart" disabled>Hết hàng</button>
+      </article>
+    </div>
+    <p id="no-results" class="no-results" hidden>Không tìm thấy sách phù hợp. Hãy thử từ khóa hoặc danh mục khác.</p>
+  </main>
+
+  <div id="cart-backdrop" class="cart-backdrop" hidden></div>
+  <aside id="cart-panel" class="cart-panel" aria-labelledby="cart-title" aria-hidden="true" aria-modal="true" role="dialog">
+    <div class="cart-header">
+      <h2 id="cart-title">Giỏ hàng của bạn</h2>
+      <button id="cart-close-btn" class="cart-close-btn" aria-label="Đóng giỏ hàng">✕</button>
+    </div>
+    <div id="cart-items" class="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>Tạm tính</span><strong id="cart-total">0 VNĐ</strong></div>
+      <button id="clear-cart-btn" class="clear-cart-btn">Xóa giỏ hàng</button>
+      <p>Giỏ hàng được lưu trên thiết bị này. Đặt hàng và thanh toán chưa khả dụng.</p>
+    </div>
+  </aside>
+
+  <!-- Nút mở khung Chat nổi góc phải -->
+  <button id="chat-toggle-btn" class="chat-toggle-btn" title="Chat với Thủ thư AI">
+    💬 Tư vấn sách AI
+  </button>
+
+  <!-- Khung Chat Widget -->
+  <div id="chat-widget" class="chat-widget hidden">
+    <div class="chat-header">
+      <div>
+        <strong>🤖 Thủ thư AI - Tư vấn 24/7</strong>
+        <span class="status-dot">● Trực tuyến</span>
+      </div>
+      <button id="chat-close-btn" class="close-btn">✕</button>
+    </div>
+
+    <div id="chat-messages" class="chat-messages">
+      <div class="message bot">
+        Xin chào! Mình là <strong>Thủ thư AI</strong>. Bạn đang tìm truyện theo thể loại, cốt truyện hay muốn kiểm tra quà tặng kèm của phiên bản đặc biệt nào?
+      </div>
+    </div>
+
+    <!-- Nút gợi ý câu hỏi nhanh -->
+    <div class="quick-prompts">
+      <button onclick="sendQuickPrompt('Tìm truyện trinh thám có tặng Standee')">🔍 Trinh thám tặng Standee</button>
+      <button onclick="sendQuickPrompt('Có manga phép thuật trường học nào u tối không?')">⚡ Manga phép thuật u tối</button>
+      <button onclick="sendQuickPrompt('Spy x Family tập 12 còn hàng không?')">📦 Kiểm tra Spy x Family 12</button>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="user-input" placeholder="Nhập câu hỏi tìm sách của bạn..." />
+      <button id="send-btn">Gửi</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
