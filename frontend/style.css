@@ -533,6 +533,114 @@ body {
   padding-left: 20px;
 }
 
+.catalog-status {
+  margin: -8px 0 16px;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.admin-dialog {
+  width: min(920px, 100%);
+  max-height: min(92vh, 900px);
+  overflow-y: auto;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.25);
+}
+
+.admin-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.admin-form label {
+  display: grid;
+  gap: 6px;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.admin-form input:not([type="checkbox"]),
+.admin-form select,
+.admin-form textarea {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2937;
+  font-size: 0.95rem;
+}
+
+.admin-form textarea {
+  resize: vertical;
+}
+
+.admin-form-wide,
+.admin-form-actions {
+  grid-column: 1 / -1;
+}
+
+.admin-stock-toggle {
+  display: flex !important;
+  align-items: center;
+  gap: 8px !important;
+}
+
+.admin-stock-toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-form-actions > * {
+  flex: 1;
+}
+
+.admin-form-actions .place-order-btn {
+  margin: 0;
+}
+
+.admin-book-list {
+  display: grid;
+  gap: 8px;
+  padding: 0 20px 16px;
+}
+
+.admin-book-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.admin-book-row p {
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.86rem;
+}
+
+.admin-book-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-note {
+  padding: 0 20px 20px;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
 #sign-out-btn {
   width: calc(100% - 40px);
   margin: 0 20px 20px;
@@ -740,5 +848,19 @@ body {
 
   .hero h1 {
     font-size: 1.6rem;
+  }
+
+  .admin-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-form-wide,
+  .admin-form-actions {
+    grid-column: 1;
+  }
+
+  .admin-book-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

@@ -15,9 +15,10 @@ const editionFilter = document.getElementById("edition-filter");
 const stockFilter = document.getElementById("stock-filter");
 const sortSelect = document.getElementById("sort-books");
 const bookGrid = document.querySelector(".book-grid");
-const bookCards = Array.from(document.querySelectorAll(".book-card"));
+let bookCards = Array.from(document.querySelectorAll(".book-card"));
 const resultsCount = document.getElementById("results-count");
 const noResults = document.getElementById("no-results");
+const catalogStatus = document.getElementById("catalog-status");
 const catalogTitle = document.querySelector(".section-title");
 const navCategoryLinks = Array.from(document.querySelectorAll(".nav-links a[data-category]"));
 const categoryTitles = {
@@ -50,18 +51,26 @@ const accountDetails = document.getElementById("account-details");
 const profileForm = document.getElementById("profile-form");
 const orderHistoryList = document.getElementById("order-history-list");
 const signOutBtn = document.getElementById("sign-out-btn");
+const adminToggleBtn = document.getElementById("admin-toggle-btn");
+const adminBackdrop = document.getElementById("admin-backdrop");
+const adminCloseBtn = document.getElementById("admin-close-btn");
+const adminStatus = document.getElementById("admin-status");
+const bookAdminForm = document.getElementById("book-admin-form");
+const adminBookList = document.getElementById("admin-book-list");
+const cancelBookEditBtn = document.getElementById("cancel-book-edit-btn");
 
-const books = bookCards.map((card, index) => ({
+let books = bookCards.map((card, index) => ({
   id: card.dataset.id,
   title: card.querySelector("h3").textContent.trim(),
-  author: card.querySelector(".author").textContent.trim(),
+  author: card.querySelector(".author").textContent.trim().replace(/^Tác giả:\s*/, ""),
   category: card.dataset.category,
   edition: card.dataset.edition.split(/\s+/),
   price: Number(card.dataset.price),
   inStock: card.dataset.stock === "true",
+  isActive: true,
   index
 }));
-const booksById = new Map(books.map((book) => [book.id, book]));
+let booksById = new Map(books.map((book) => [book.id, book]));
 const money = new Intl.NumberFormat("vi-VN");
 let cart = loadCart();
 let currentUser = null;
@@ -70,6 +79,94 @@ const supabaseConfig = window.SUPABASE_CONFIG;
 const supabaseClient = window.supabase && supabaseConfig
   ? window.supabase.createClient(supabaseConfig.url, supabaseConfig.publishableKey)
   : null;
+let catalogRows = [];
+
+function buildBookCard(book) {
+  const card = document.createElement("article");
+  card.className = "book-card";
+  card.dataset.id = book.id;
+  card.dataset.category = book.category;
+  card.dataset.edition = book.edition;
+  card.dataset.price = String(book.price);
+  card.dataset.stock = String(book.in_stock);
+  card.dataset.search = book.title;
+
+  const publisher = document.createElement("span");
+  publisher.className = "badge";
+  publisher.textContent = book.publisher || "Nhà xuất bản chưa cập nhật";
+  card.appendChild(publisher);
+
+  if (!book.in_stock) {
+    const stockBadge = document.createElement("span");
+    stockBadge.className = "badge out";
+    stockBadge.textContent = "Tạm hết hàng";
+    card.appendChild(stockBadge);
+  }
+
+  const title = document.createElement("h3");
+  title.textContent = book.title;
+  const author = document.createElement("p");
+  author.className = "author";
+  author.textContent = `Tác giả: ${book.author || "Đang cập nhật"}`;
+  const edition = document.createElement("p");
+  edition.className = "edition";
+  edition.textContent = book.edition_details || ({
+    regular: "Bản Thường",
+    special: "Bản Đặc Biệt",
+    limited: "Bản Giới Hạn",
+    boxset: "Boxset"
+  }[book.edition.split(/\s+/)[0]] || "Bản Thường");
+  const price = document.createElement("div");
+  price.className = "price";
+  price.textContent = formatPrice(book.price);
+  const addButton = document.createElement("button");
+  addButton.className = "add-to-cart";
+  addButton.textContent = book.in_stock ? "Thêm vào giỏ" : "Hết hàng";
+  addButton.disabled = !book.in_stock;
+  card.append(title, author, edition, price, addButton);
+  return card;
+}
+
+function renderCatalogRows(rows) {
+  catalogRows = rows;
+  books = rows.map((row, index) => ({
+    id: row.id,
+    title: row.title,
+    author: row.author || "",
+    publisher: row.publisher || "",
+    category: row.category || "manga",
+    edition: (row.edition || "regular").split(/\s+/),
+    editionValue: row.edition || "regular",
+    editionDetails: row.edition_details || "",
+    description: row.description || "",
+    price: Number(row.price),
+    inStock: row.in_stock === true,
+    isActive: row.is_active !== false,
+    index
+  }));
+  booksById = new Map(books.map((book) => [book.id, book]));
+  bookCards = rows.map(buildBookCard);
+  bookGrid.replaceChildren(...bookCards);
+
+  cart = new Map(Array.from(cart).filter(([id]) => {
+    const book = booksById.get(id);
+    return book && book.inStock && book.isActive;
+  }));
+  renderCart();
+  filterAndSortBooks();
+  if (!currentUser) saveCart();
+}
+
+async function loadCatalogFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from("book_catalog")
+    .select("id, title, author, publisher, category, price, edition, edition_details, description, in_stock, is_active")
+    .eq("is_active", true)
+    .order("title");
+  if (error) throw error;
+  renderCatalogRows(data);
+  catalogStatus.textContent = "";
+}
 
 chatToggleBtn.addEventListener("click", () => {
   chatWidget.classList.toggle("hidden");
@@ -226,10 +323,9 @@ function loadCart() {
     const savedCart = JSON.parse(localStorage.getItem("bookstore-cart") || "[]");
     if (!Array.isArray(savedCart)) throw new TypeError("Dữ liệu giỏ hàng không hợp lệ");
     return savedCart.reduce((items, item) => {
-      const book = item && booksById.get(item.id);
       const quantity = Number(item && item.quantity);
-      if (book && book.inStock && Number.isSafeInteger(quantity) && quantity > 0) {
-        items.set(book.id, quantity);
+      if (item && typeof item.id === "string" && Number.isSafeInteger(quantity) && quantity > 0) {
+        items.set(item.id, quantity);
       }
       return items;
     }, new Map());
@@ -363,6 +459,140 @@ async function loadOrderHistory() {
   });
 }
 
+async function updateAdminVisibility() {
+  adminToggleBtn.hidden = true;
+  if (!supabaseClient || !currentUser) return;
+  const { data, error } = await supabaseClient.rpc("is_admin");
+  if (error) {
+    console.error("Không thể kiểm tra quyền quản trị:", error);
+    return;
+  }
+  adminToggleBtn.hidden = data !== true;
+}
+
+function setAdminMessage(message, isError = false) {
+  adminStatus.textContent = message;
+  adminStatus.classList.toggle("error", isError);
+}
+
+function resetBookAdminForm() {
+  bookAdminForm.reset();
+  bookAdminForm.elements.namedItem("id").value = "";
+  bookAdminForm.elements.namedItem("in_stock").checked = true;
+  cancelBookEditBtn.hidden = true;
+  bookAdminForm.querySelector('button[type="submit"]').textContent = "Thêm sách";
+}
+
+function editBookInAdminForm(book) {
+  bookAdminForm.elements.namedItem("id").value = book.id;
+  bookAdminForm.elements.namedItem("title").value = book.title;
+  bookAdminForm.elements.namedItem("author").value = book.author || "";
+  bookAdminForm.elements.namedItem("publisher").value = book.publisher || "";
+  bookAdminForm.elements.namedItem("category").value = book.category || "manga";
+  bookAdminForm.elements.namedItem("price").value = String(book.price);
+  bookAdminForm.elements.namedItem("edition").value = book.edition || "regular";
+  bookAdminForm.elements.namedItem("edition_details").value = book.edition_details || "";
+  bookAdminForm.elements.namedItem("description").value = book.description || "";
+  bookAdminForm.elements.namedItem("in_stock").checked = book.in_stock;
+  cancelBookEditBtn.hidden = false;
+  bookAdminForm.querySelector('button[type="submit"]').textContent = "Lưu thay đổi";
+  bookAdminForm.elements.namedItem("title").focus();
+}
+
+function renderAdminBookList(rows) {
+  adminBookList.replaceChildren();
+  if (rows.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-cart";
+    empty.textContent = "Chưa có sách trong danh mục.";
+    adminBookList.appendChild(empty);
+    return;
+  }
+
+  rows.forEach((book) => {
+    const row = document.createElement("article");
+    row.className = "admin-book-row";
+    const details = document.createElement("div");
+    const title = document.createElement("strong");
+    title.textContent = book.title;
+    const meta = document.createElement("p");
+    meta.textContent = `${formatPrice(book.price)} · ${book.is_active ? (book.in_stock ? "Còn hàng" : "Hết hàng") : "Đã ẩn"}`;
+    details.append(title, meta);
+
+    const actions = document.createElement("div");
+    actions.className = "admin-book-actions";
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "cart-action";
+    editButton.textContent = "Sửa";
+    editButton.addEventListener("click", () => editBookInAdminForm(book));
+
+    const visibilityButton = document.createElement("button");
+    visibilityButton.type = "button";
+    visibilityButton.className = "cart-action";
+    visibilityButton.textContent = book.is_active ? "Xóa" : "Khôi phục";
+    visibilityButton.addEventListener("click", async () => {
+      const nextActive = !book.is_active;
+      const prompt = nextActive
+        ? `Khôi phục “${book.title}” về cửa hàng?`
+        : `Ẩn “${book.title}” khỏi cửa hàng? Lịch sử đơn hàng vẫn được giữ.`;
+      if (!window.confirm(prompt)) return;
+      const { error } = await supabaseClient
+        .from("book_catalog")
+        .update({ is_active: nextActive, updated_at: new Date().toISOString() })
+        .eq("id", book.id);
+      if (error) {
+        setAdminMessage(`Không thể cập nhật sách: ${error.message}`, true);
+        return;
+      }
+      try {
+        await refreshAdminCatalog();
+        setAdminMessage(nextActive ? "Đã khôi phục sách." : "Đã ẩn sách khỏi cửa hàng.");
+      } catch (refreshError) {
+        console.error("Đã cập nhật trạng thái nhưng không tải lại danh sách:", refreshError);
+        setAdminMessage("Đã cập nhật sách nhưng không tải lại được danh sách. Hãy đóng rồi mở lại trang quản trị.", true);
+      }
+    });
+
+    actions.append(editButton, visibilityButton);
+    row.append(details, actions);
+    adminBookList.appendChild(row);
+  });
+}
+
+async function refreshAdminCatalog() {
+  const { data, error } = await supabaseClient
+    .from("book_catalog")
+    .select("id, title, author, publisher, category, price, edition, edition_details, description, in_stock, is_active")
+    .order("title");
+  if (error) throw error;
+  renderAdminBookList(data);
+  const activeRows = data.filter((book) => book.is_active);
+  renderCatalogRows(activeRows);
+}
+
+async function openAdminPanel() {
+  adminBackdrop.hidden = false;
+  adminCloseBtn.focus();
+  if (!currentUser) {
+    setAdminMessage("Bạn cần đăng nhập bằng tài khoản được cấp quyền admin.", true);
+    return;
+  }
+  const { data: isAdmin, error: roleError } = await supabaseClient.rpc("is_admin");
+  if (roleError || isAdmin !== true) {
+    console.error("Tài khoản không có quyền quản trị:", roleError);
+    setAdminMessage("Tài khoản này chưa được cấp quyền quản lý sách.", true);
+    return;
+  }
+  try {
+    await refreshAdminCatalog();
+    setAdminMessage("");
+  } catch (error) {
+    console.error("Không thể tải danh sách quản trị:", error);
+    setAdminMessage(`Không thể tải danh sách sách: ${error.message}`, true);
+  }
+}
+
 async function handleAuthSession(session) {
   const nextUser = session?.user || null;
   if (currentUser?.id === nextUser?.id) return;
@@ -376,6 +606,7 @@ async function handleAuthSession(session) {
       console.error("Không thể xóa giỏ hàng cục bộ:", error);
     }
     accountToggleBtn.textContent = "Đăng nhập";
+    adminToggleBtn.hidden = true;
     authForms.hidden = false;
     accountDetails.hidden = true;
     renderCart();
@@ -409,6 +640,7 @@ async function handleAuthSession(session) {
   } else {
     setAccountMessage(`Đã đăng nhập: ${currentUser.email || ""}`);
   }
+  await updateAdminVisibility();
 }
 
 function openAccount() {
@@ -421,10 +653,21 @@ function closeAccount() {
   accountToggleBtn.focus();
 }
 
-function initializeSupabase() {
+function closeAdminPanel() {
+  adminBackdrop.hidden = true;
+  adminToggleBtn.focus();
+}
+
+async function initializeSupabase() {
   if (!supabaseClient) {
     setAccountMessage("Không tải được Supabase SDK hoặc cấu hình kết nối.");
     return;
+  }
+  try {
+    await loadCatalogFromSupabase();
+  } catch (error) {
+    console.error("Không thể tải danh mục sách từ Supabase:", error);
+    catalogStatus.textContent = "Đang hiển thị danh mục dự phòng; dữ liệu Supabase chưa tải được.";
   }
   supabaseClient.auth.onAuthStateChange((_event, session) => {
     window.setTimeout(() => {
@@ -434,13 +677,14 @@ function initializeSupabase() {
       });
     }, 0);
   });
-  supabaseClient.auth.getSession().then(({ data, error }) => {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
     if (error) throw error;
-    return handleAuthSession(data.session);
-  }).catch((error) => {
+    await handleAuthSession(data.session);
+  } catch (error) {
     console.error("Không thể khôi phục phiên Supabase:", error);
     setAccountMessage("Không thể kiểm tra phiên đăng nhập. Vui lòng tải lại trang.", true);
-  });
+  }
 }
 
 function formatPrice(price) {
@@ -526,6 +770,66 @@ cartCloseBtn.addEventListener("click", closeCart);
 cartBackdrop.addEventListener("click", closeCart);
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && cartPanel.classList.contains("open")) closeCart();
+});
+
+adminToggleBtn.addEventListener("click", openAdminPanel);
+adminCloseBtn.addEventListener("click", closeAdminPanel);
+adminBackdrop.addEventListener("click", (event) => {
+  if (event.target === adminBackdrop) closeAdminPanel();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !adminBackdrop.hidden) closeAdminPanel();
+});
+
+cancelBookEditBtn.addEventListener("click", resetBookAdminForm);
+bookAdminForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!supabaseClient || !currentUser) return;
+  const formData = new FormData(bookAdminForm);
+  const price = Number(formData.get("price"));
+  if (!Number.isSafeInteger(price) || price <= 0) {
+    setAdminMessage("Giá sách phải là số nguyên dương.", true);
+    return;
+  }
+
+  const existingId = String(formData.get("id") || "");
+  const id = existingId || (window.crypto.randomUUID
+    ? `book_${window.crypto.randomUUID()}`
+    : `book_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+  const book = {
+    id,
+    title: String(formData.get("title")).trim(),
+    author: String(formData.get("author")).trim(),
+    publisher: String(formData.get("publisher")).trim(),
+    category: String(formData.get("category")),
+    price,
+    edition: String(formData.get("edition")),
+    edition_details: String(formData.get("edition_details") || "").trim(),
+    description: String(formData.get("description") || "").trim(),
+    in_stock: bookAdminForm.elements.namedItem("in_stock").checked,
+    is_active: true,
+    updated_at: new Date().toISOString()
+  };
+  if (!book.title || !book.author || !book.publisher) {
+    setAdminMessage("Vui lòng nhập tên sách, tác giả và nhà xuất bản.", true);
+    return;
+  }
+
+  const submitButton = bookAdminForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  setAdminMessage("Đang lưu sách...");
+  try {
+    const { error } = await supabaseClient.from("book_catalog").upsert(book, { onConflict: "id" });
+    if (error) throw error;
+    resetBookAdminForm();
+    await refreshAdminCatalog();
+    setAdminMessage(existingId ? "Đã cập nhật sách." : "Đã thêm sách mới.");
+  } catch (error) {
+    console.error("Không thể lưu sản phẩm:", error);
+    setAdminMessage(`Không thể lưu sách: ${error.message}`, true);
+  } finally {
+    submitButton.disabled = false;
+  }
 });
 
 bookGrid.addEventListener("click", (event) => {
